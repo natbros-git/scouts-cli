@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "scouts-cli"
+version = "0.1.0"
+description = "CLI for BSA Internet Advancement (Scoutbook Plus)"
+readme = "README.md"
+license = {file = "LICENSE"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Nathan Brothers"},
+]
+
+dependencies = [
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+browser = [
+    "playwright>=1.40.0",
+]
+
+[project.scripts]
+scouts = "scouts_cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["scouts_cli*"]
+
+[tool.setuptools.package-data]
+scouts_cli = ["py.typed"]

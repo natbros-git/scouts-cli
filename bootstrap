@@ -1,0 +1,448 @@
+#!/usr/bin/env python3
+"""Scouts CLI bootstrap — check prerequisites and install dependencies.
+
+This script uses only Python 3.6+ syntax so it can report a clear error
+on older Python versions instead of crashing with a SyntaxError.
+
+Usage:
+    ./bootstrap              # Check prerequisites, JSON output (for agents)
+    ./bootstrap --human      # Check prerequisites, human-readable output
+    ./bootstrap --install    # Check and install missing Python packages
+"""
+
+import json
+import os
+import platform
+import shutil
+import subprocess
+import sys
+
+# ---------------------------------------------------------------------------
+# Version gate — must work on any Python 3.x
+# ---------------------------------------------------------------------------
+
+MIN_PYTHON = (3, 10)
+
+
+def _version_gate():
+    """Exit immediately if Python is too old."""
+    if sys.version_info < MIN_PYTHON:
+        msg = (
+            "Scouts CLI requires Python %d.%d+. "
+            "Current version: %s\n"
+            "Install a newer Python from https://www.python.org/downloads/"
+            % (MIN_PYTHON[0], MIN_PYTHON[1], platform.python_version())
+        )
+        # If stdout looks like it's being parsed as JSON, emit JSON
+        print(json.dumps({
+            "ready": False,
+            "checks": [{
+                "name": "python",
+                "status": "fail",
+                "detail": "Python %s < required %d.%d" % (
+                    platform.python_version(), MIN_PYTHON[0], MIN_PYTHON[1]),
+                "fix": "Install Python %d.%d+ from https://www.python.org/downloads/" % (
+                    MIN_PYTHON[0], MIN_PYTHON[1]),
+            }],
+            "summary": msg.split("\n")[0],
+        }))
+        sys.exit(1)
+
+
+_version_gate()
+
+# ---------------------------------------------------------------------------
+# Everything below can assume Python 3.6+ (keeping compat for error clarity)
+# ---------------------------------------------------------------------------
+
+
+def parse_args():
+    """Parse command-line arguments without argparse (keeps it simple)."""
+    args = sys.argv[1:]
+
+    # --simulate-missing chrome,playwright  (for testing failure paths)
+    simulate_missing = set()
+    for i, arg in enumerate(args):
+        if arg == "--simulate-missing" and i + 1 < len(args):
+            simulate_missing = set(args[i + 1].split(","))
+
+    return {
+        "human": "--human" in args,
+        "install": "--install" in args,
+        "simulate_missing": simulate_missing,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Individual checks
+# ---------------------------------------------------------------------------
+
+
+def check_python():
+    """Check Python version."""
+    version = platform.python_version()
+    if sys.version_info >= MIN_PYTHON:
+        return {"name": "python", "status": "pass",
+                "detail": "Python %s" % version}
+    return {"name": "python", "status": "fail",
+            "detail": "Python %s < required %d.%d" % (
+                version, MIN_PYTHON[0], MIN_PYTHON[1]),
+            "fix": "Install Python %d.%d+ from https://www.python.org/downloads/" % (
+                MIN_PYTHON[0], MIN_PYTHON[1])}
+
+
+def check_pip():
+    """Check that pip is available."""
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "pip", "--version"],
+            capture_output=True, text=True, timeout=10,
+        )
+        if result.returncode == 0:
+            # Output: "pip 24.0 from /path/to/pip (python 3.12)"
+            version_str = result.stdout.strip().split()[1] if result.stdout else "unknown"
+            return {"name": "pip", "status": "pass",
+                    "detail": "pip %s" % version_str}
+    except Exception:
+        pass
+    return {"name": "pip", "status": "fail",
+            "detail": "Not available",
+            "fix": "python3 -m ensurepip --upgrade"}
+
+
+def check_chrome():
+    """Check that Google Chrome is installed."""
+    chrome_path = _find_chrome()
+    if chrome_path:
+        return {"name": "chrome", "status": "pass",
+                "detail": chrome_path}
+    system = platform.system()
+    if system == "Darwin":
+        fix = "Download from https://www.google.com/chrome/ or: brew install --cask google-chrome"
+    elif system == "Linux":
+        fix = "Download from https://www.google.com/chrome/ or install via your package manager"
+    elif system == "Windows":
+        fix = "Download from https://www.google.com/chrome/"
+    else:
+        fix = "Download from https://www.google.com/chrome/"
+    return {"name": "chrome", "status": "fail",
+            "detail": "Google Chrome not found",
+            "fix": fix}
+
+
+def _find_chrome():
+    """Return Chrome executable path or None."""
+    system = platform.system()
+    if system == "Darwin":
+        path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        if os.path.isfile(path):
+            return path
+    elif system == "Linux":
+        for name in ("google-chrome", "google-chrome-stable"):
+            found = shutil.which(name)
+            if found:
+                return found
+    elif system == "Windows":
+        for env_var in ("PROGRAMFILES", "PROGRAMFILES(X86)"):
+            base = os.environ.get(env_var, "")
+            if base:
+                path = os.path.join(base, "Google", "Chrome", "Application", "chrome.exe")
+                if os.path.isfile(path):
+                    return path
+    return None
+
+
+def _get_package_version(name):
+    """Get installed version of a package, trying multiple methods."""
+    # Method 1: __version__ attribute (most packages)
+    try:
+        mod = __import__(name)
+        version = getattr(mod, "__version__", None)
+        if version:
+            return version
+    except ImportError:
+        raise
+
+    # Method 2: importlib.metadata (works for packages without __version__)
+    try:
+        from importlib.metadata import version as get_version
+        return get_version(name)
+    except Exception:
+        pass
+
+    return "unknown"
+
+
+def check_package(name, min_version=None):
+    """Check if a Python package is importable and meets minimum version."""
+    try:
+        version = _get_package_version(name)
+        if min_version and version != "unknown":
+            try:
+                installed = tuple(int(x) for x in version.split(".")[:3])
+                required = tuple(int(x) for x in min_version.split(".")[:3])
+                if installed < required:
+                    return {"name": name, "status": "fail",
+                            "detail": "%s %s < required %s" % (name, version, min_version),
+                            "fix": "pip install \"%s>=%s\"" % (name, min_version),
+                            "installable": True}
+            except ValueError:
+                pass  # Non-standard version string; accept it
+        return {"name": name, "status": "pass",
+                "detail": "%s %s" % (name, version)}
+    except ImportError:
+        fix = "pip install %s" % name
+        if min_version:
+            fix = "pip install \"%s>=%s\"" % (name, min_version)
+        return {"name": name, "status": "fail",
+                "detail": "%s not installed" % name,
+                "fix": fix,
+                "installable": True}
+
+
+def check_data_dir():
+    """Check that the ~/.scouts-cli/ data directory exists."""
+    data_dir = os.path.expanduser("~/.scouts-cli")
+    if os.path.isdir(data_dir):
+        return {"name": "data_dir", "status": "pass",
+                "detail": "~/.scouts-cli/"}
+    return {"name": "data_dir", "status": "fail",
+            "detail": "~/.scouts-cli/ does not exist",
+            "fix": "mkdir -p ~/.scouts-cli",
+            "installable": True}
+
+
+# ---------------------------------------------------------------------------
+# Installation
+# ---------------------------------------------------------------------------
+
+
+PACKAGES = [
+    ("requests", "2.28.0"),
+    ("playwright", "1.40.0"),
+]
+
+
+def install_missing(checks):
+    """Install missing Python packages and create data directory.
+
+    Returns a list of (name, success, message) tuples.
+    """
+    results = []
+    for check in checks:
+        if check["status"] != "fail":
+            continue
+        if not check.get("installable"):
+            continue
+
+        name = check["name"]
+
+        # Data directory — just create it
+        if name == "data_dir":
+            try:
+                data_dir = os.path.expanduser("~/.scouts-cli")
+                os.makedirs(data_dir, exist_ok=True)
+                results.append((name, True, "Created ~/.scouts-cli/"))
+            except OSError as e:
+                results.append((name, False, str(e)))
+            continue
+
+        # Python package — pip install
+        min_version = None
+        for pkg_name, pkg_ver in PACKAGES:
+            if pkg_name == name:
+                min_version = pkg_ver
+                break
+
+        spec = name
+        if min_version:
+            spec = "%s>=%s" % (name, min_version)
+
+        try:
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "install", spec],
+                capture_output=True, text=True, timeout=120,
+            )
+            if result.returncode == 0:
+                results.append((name, True, "Installed %s" % spec))
+            else:
+                error = result.stderr.strip().split("\n")[-1] if result.stderr else "Unknown error"
+                results.append((name, False, error))
+        except Exception as e:
+            results.append((name, False, str(e)))
+
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Output formatting
+# ---------------------------------------------------------------------------
+
+
+def format_human(checks, install_results=None):
+    """Print human-readable output."""
+    print("Scouts CLI Bootstrap")
+    print("=" * 20)
+    print()
+
+    for check in checks:
+        status = check["status"].upper()
+        if status == "PASS":
+            tag = "[PASS]"
+        else:
+            tag = "[FAIL]"
+
+        detail = check.get("detail", "")
+        print("  %s %s" % (tag, detail))
+
+        if check["status"] == "fail" and "fix" in check:
+            print("         Fix: %s" % check["fix"])
+
+    # Print install results if any
+    if install_results:
+        print()
+        print("Installation Results")
+        print("-" * 20)
+        for name, success, message in install_results:
+            tag = "[OK]" if success else "[ERR]"
+            print("  %s %s: %s" % (tag, name, message))
+
+    # Summary
+    failures = [c for c in checks if c["status"] == "fail"]
+    print()
+    if not failures:
+        is_windows = platform.system() == "Windows"
+        prefix = "python " if is_windows else "./"
+        print("All checks passed. System is ready.")
+        print("Next step: %sscouts auth login" % prefix)
+    else:
+        installable = [c for c in failures if c.get("installable")]
+        manual = [c for c in failures if not c.get("installable")]
+        parts = []
+        if installable:
+            parts.append("%d can be auto-installed (run with --install)" % len(installable))
+        if manual:
+            parts.append("%d require manual action" % len(manual))
+        print("%d issue(s) found. %s" % (len(failures), ". ".join(parts) + "."))
+
+
+def format_json(checks, install_results=None):
+    """Print JSON output."""
+    failures = [c for c in checks if c["status"] == "fail"]
+
+    # Clean out internal-only fields
+    clean_checks = []
+    for check in checks:
+        entry = {"name": check["name"], "status": check["status"],
+                 "detail": check.get("detail", "")}
+        if "fix" in check:
+            entry["fix"] = check["fix"]
+        clean_checks.append(entry)
+
+    # Platform info for agents to determine correct invocation
+    is_windows = platform.system() == "Windows"
+    prefix = "python " if is_windows else "./"
+
+    output = {
+        "ready": len(failures) == 0,
+        "platform": {
+            "os": platform.system(),
+            "python": platform.python_version(),
+            "invocation_prefix": prefix,
+            "run_example": "%sscouts auth status" % prefix,
+        },
+        "checks": clean_checks,
+    }
+
+    if failures:
+        installable = [c for c in failures if c.get("installable")]
+        manual = [c for c in failures if not c.get("installable")]
+        parts = []
+        if installable:
+            parts.append("%d can be auto-installed (run with --install)" % len(installable))
+        if manual:
+            parts.append("%d require manual action" % len(manual))
+        output["summary"] = "%d issue(s). %s" % (len(failures), ". ".join(parts) + ".")
+    else:
+        output["summary"] = "All checks passed. System is ready."
+
+    if install_results:
+        output["install_results"] = [
+            {"name": name, "success": success, "message": message}
+            for name, success, message in install_results
+        ]
+
+    print(json.dumps(output, indent=2))
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def _run_checks(simulate_missing=None):
+    """Run all prerequisite checks. Returns list of check result dicts."""
+    if simulate_missing is None:
+        simulate_missing = set()
+
+    checks = [
+        check_python(),
+        check_pip(),
+        check_chrome(),
+        check_package("requests", "2.28.0"),
+        check_package("playwright", "1.40.0"),
+        check_data_dir(),
+    ]
+
+    # Override results for simulated missing items (testing only)
+    if simulate_missing:
+        for i, check in enumerate(checks):
+            if check["name"] in simulate_missing and check["status"] == "pass":
+                # Build a fake failure result
+                fake = {"name": check["name"], "status": "fail",
+                        "detail": "%s not found (simulated)" % check["name"]}
+                if check["name"] == "chrome":
+                    fake["fix"] = "Download from https://www.google.com/chrome/"
+                elif check["name"] in ("requests", "playwright"):
+                    fake["fix"] = "pip install %s" % check["name"]
+                    fake["installable"] = True
+                elif check["name"] == "data_dir":
+                    fake["fix"] = "mkdir -p ~/.scouts-cli"
+                    fake["installable"] = True
+                checks[i] = fake
+
+    return checks
+
+
+def main():
+    opts = parse_args()
+
+    # Run all checks
+    checks = _run_checks(opts["simulate_missing"])
+
+    # Install if requested
+    install_results = None
+    if opts["install"]:
+        install_results = install_missing(checks)
+
+        # Re-run checks after installation to get fresh status
+        checks = _run_checks(opts["simulate_missing"])
+
+    # Output
+    if opts["human"]:
+        format_human(checks, install_results)
+    else:
+        format_json(checks, install_results)
+
+    # Exit code
+    failures = [c for c in checks if c["status"] == "fail"]
+    if install_results and any(not success for _, success, _ in install_results):
+        sys.exit(2)
+    elif failures:
+        sys.exit(1)
+    else:
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

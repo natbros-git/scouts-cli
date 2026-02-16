@@ -1,0 +1,3 @@
+"""Scouts BSA Internet Advancement CLI."""
+
+__version__ = "0.1.0"

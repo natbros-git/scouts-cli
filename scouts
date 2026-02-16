@@ -1,0 +1,27 @@
+#!/usr/bin/env python3
+"""Scouts BSA Internet Advancement CLI entry point.
+
+Development convenience script. When the package is installed via
+pip install, the 'scouts' console_scripts entry point is used instead.
+
+This script handles the case where scouts_cli is not on sys.path
+(i.e., running directly from the source tree without pip install).
+"""
+
+import sys
+import os
+
+
+def main():
+    try:
+        from scouts_cli.main import main as cli_main
+    except ImportError:
+        # Not installed as a package — add the project root to sys.path
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from scouts_cli.main import main as cli_main
+
+    cli_main()
+
+
+if __name__ == '__main__':
+    main()
