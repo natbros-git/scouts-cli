@@ -8,28 +8,35 @@ The context auto-populates on first use and can be force-refreshed with
 `scouts context refresh`. Agent consumers can also read the file directly.
 
 Context file structure:
+
+    ID formats:
+      orgGuid    — UUID: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX (8-4-4-4-12 hex)
+      personGuid — UUID: same format as orgGuid
+      userId     — numeric, typically 8 digits (e.g., 10000001)
+      memberId   — numeric, typically 9 digits (e.g., 100000001)
+
 {
     "version": 1,
     "lastRefreshed": "2026-02-16T00:10:00Z",
     "user": {
-        "userId": 10529772,
-        "personGuid": "B0C5B8E8-...",
-        "memberId": 136612736,
-        "firstName": "Nathan",
-        "lastName": "Brothers",
-        "fullName": "Nathan Brothers",
+        "userId": 10000001,
+        "personGuid": "{person-guid}",
+        "memberId": 100000001,
+        "firstName": "Jane",
+        "lastName": "Smith",
+        "fullName": "Jane Smith",
         "email": "..."
     },
     "organizations": [
         {
-            "orgGuid": "F4C19DEB-...",
-            "name": "Pack 0206",
+            "orgGuid": "{org-guid}",
+            "name": "Pack 1234",
             "unitType": "Pack",
-            "unitNumber": "0206",
+            "unitNumber": "1234",
             "program": "Cub Scouting",
             "roles": ["Den Leader", "Parent/Guardian"],
             "scouts": [
-                {"name": "James Brothers", "userId": "12474560", "memberId": "14257739"},
+                {"name": "Alex Smith", "userId": "10000002", "memberId": "100000002"},
                 ...
             ]
         },
@@ -37,14 +44,14 @@ Context file structure:
     ],
     "scouts": [
         {
-            "firstName": "Wesley",
-            "lastName": "Brothers",
-            "fullName": "Wesley Brothers",
-            "userId": "10312245",
-            "memberId": "136612735",
-            "orgGuid": "7E50CF59-...",
+            "firstName": "Sam",
+            "lastName": "Smith",
+            "fullName": "Sam Smith",
+            "userId": "10000003",
+            "memberId": "100000003",
+            "orgGuid": "{org-guid}",
             "unitType": "Troop",
-            "unitNumber": "111",
+            "unitNumber": "5678",
             "program": "Scouts BSA",
             "positions": ["Scouts BSA", "Scribe"]
         },

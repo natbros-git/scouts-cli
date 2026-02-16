@@ -48,13 +48,13 @@ Scouts are identified by multiple IDs. The correct ID depends on the operation:
 
 **To resolve a scout's name to their IDs**, use:
 ```bash
-scouts roster resolve "James"
+scouts roster resolve "Alex"
 ```
 This searches across ALL organizations the current user has access to and returns `userId`, `memberId`, `orgGuid`, `unitType`, and `program` for each match.
 
 ### Organizations
 
-A parent may have scouts in multiple organizations (e.g., Pack 206 for Cub Scouts, Troop 111 for Scouts BSA). Every org-scoped operation requires an `--org` GUID.
+A parent may have scouts in multiple organizations (e.g., a Pack for Cub Scouts, a Troop for Scouts BSA). Every org-scoped operation requires an `--org` GUID.
 
 ```bash
 scouts org list    # Lists all orgs from cached context
@@ -114,8 +114,8 @@ scouts org activities --org {GUID}           # Activities dashboard (campouts, s
 
 ```bash
 scouts roster list --org {GUID}              # Full youth roster (names, IDs, dens, ranks)
-scouts roster search --org {GUID} "James"    # Search youth by name (case-insensitive)
-scouts roster resolve "James"                # Cross-org name-to-ID lookup (all orgs)
+scouts roster search --org {GUID} "Alex"     # Search youth by name (case-insensitive)
+scouts roster resolve "Alex"                 # Cross-org name-to-ID lookup (all orgs)
 scouts roster adults --org {GUID}            # Adult leader roster
 scouts roster parents --org {GUID}           # Parent-youth relationships
 ```
@@ -176,7 +176,7 @@ scouts dashboard {GUID}
 
 ```bash
 scouts message recipients --org {GUID}       # List available recipients (leaders, youth, parents)
-scouts message search --org {GUID} "John"    # Search recipients by name
+scouts message search --org {GUID} "Alex"    # Search recipients by name
 scouts message send --org {GUID} --bcc {memberIds} \
     --subject "Subject" --body "Body text" --dry-run
 ```
@@ -374,21 +374,23 @@ The reference data file and API both contain multiple versions of the same adven
 
 ### Example Workflow
 
+ID formats: `orgGuid` is a UUID (`XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`, 8-4-4-4-12 hex), `userId` is numeric (~8 digits), `memberId` is numeric (~9 digits).
+
 ```bash
 # 1. Resolve scout name
-scouts roster resolve "James"
-# Returns: userId=12474560, memberId=14257739, orgGuid=F4C19DEB-...
+scouts roster resolve "Alex"
+# Returns: userId, memberId, orgGuid, unitType, program for each match
 
-# 2. Check current status
-scouts advancement status --org F4C19DEB-... --adventure 124 --members 14257739
+# 2. Check current status (uses memberId from step 1)
+scouts advancement status --org {org-guid} --adventure 124 --members {member-id}
 
-# 3. Preview the write
-scouts advancement bulk-entry --org F4C19DEB-... --adventure 124 --version-id 287 \
-    --users 12474560 --requirements 2632,2633 --date 2026-02-15 --approve --dry-run
+# 3. Preview the write (uses userId from step 1)
+scouts advancement bulk-entry --org {org-guid} --adventure 124 --version-id 287 \
+    --users {user-id} --requirements 2632,2633 --date 2026-02-15 --approve --dry-run
 
 # 4. Submit
-scouts advancement bulk-entry --org F4C19DEB-... --adventure 124 --version-id 287 \
-    --users 12474560 --requirements 2632,2633 --date 2026-02-15 --approve
+scouts advancement bulk-entry --org {org-guid} --adventure 124 --version-id 287 \
+    --users {user-id} --requirements 2632,2633 --date 2026-02-15 --approve
 ```
 
 ## Reference Data

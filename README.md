@@ -42,6 +42,11 @@ The CLI runs on macOS, Linux, and Windows. The `scouts` and `bootstrap` scripts 
 
 ## Quick Start
 
+ID formats used in examples below:
+- `orgGuid`: UUID — `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` (8-4-4-4-12 hex)
+- `userId`: numeric, typically 8 digits
+- `memberId`: numeric, typically 9 digits
+
 ```bash
 # Check auth
 scouts auth status
@@ -54,17 +59,17 @@ scouts profile my-scouts
 scouts org list
 
 # Roster operations
-scouts roster list --org F4C19DEB-...
-scouts roster search --org F4C19DEB-... "James"
-scouts roster resolve "James"          # Cross-org name lookup
+scouts roster list --org {org-guid}
+scouts roster search --org {org-guid} "Alex"
+scouts roster resolve "Alex"           # Cross-org name lookup
 
 # Advancement status and bulk entry
-scouts advancement status --org F4C19DEB-... --adventure 124 --members 140325643
-scouts advancement bulk-entry --org F4C19DEB-... --adventure 124 --version-id 287 \
-    --users 14048576 --requirements 2632 --date 2026-02-15 --approve
+scouts advancement status --org {org-guid} --adventure 124 --members {member-id}
+scouts advancement bulk-entry --org {org-guid} --adventure 124 --version-id 287 \
+    --users {user-id} --requirements 2632 --date 2026-02-15 --approve
 
 # Messaging
-scouts message send --org F4C19DEB-... --bcc 136612736 \
+scouts message send --org {org-guid} --bcc {member-id} \
     --subject "Meeting reminder" --body "Pack meeting Thursday at 6pm"
 
 # Local context cache
@@ -89,7 +94,7 @@ This CLI is designed for both human and AI agent use. JSON output (default) is m
 Use `roster resolve` for natural-language name-to-ID resolution across all organizations:
 
 ```bash
-scouts roster resolve "James"
+scouts roster resolve "Alex"
 # Returns: userId, memberId, orgGuid, unitType, program for each match
 ```
 
@@ -134,10 +139,10 @@ When producing advancement reports for a den or group of scouts:
 Example workflow:
 ```bash
 # Get roster to find Bear scouts
-scouts roster list --org F4C19DEB-... | jq '.members[] | select(.denType == "bears")'
+scouts roster list --org {org-guid} | jq '.members[] | select(.denType == "bears")'
 
 # Query advancement status for each required adventure (batch all member IDs)
-scouts advancement status --org F4C19DEB-... --adventure 115 --members 141131357,140308312,...
+scouts advancement status --org {org-guid} --adventure 115 --members {member-id-1},{member-id-2},...
 
 # Check adventure-level status field, not just requirement counts
 ```
@@ -148,14 +153,14 @@ The `message send` command requires human confirmation via a platform-native dia
 
 ### Key Identifiers
 
-| ID | Used for | Example |
-|----|----------|---------|
-| `orgGuid` | All org-scoped operations | `F4C19DEB-228D-4CA1-9FD4-3D43BB4E8D99` |
-| `userId` | Write operations (bulk-entry) | `12474560` |
-| `memberId` | Read operations (advancement status), messaging | `14257739` |
-| `adventureId` | Adventure operations | `124` (Paws for Action) |
-| `versionId` | Specifying adventure version | `287` (2024 version) |
-| `requirementId` | Marking individual requirements | `2632` |
+| ID | Used for | Format |
+|----|----------|--------|
+| `orgGuid` | All org-scoped operations | UUID: `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX` (8-4-4-4-12 hex) |
+| `userId` | Write operations (bulk-entry) | Numeric, typically 8 digits |
+| `memberId` | Read operations (advancement status), messaging | Numeric, typically 9 digits |
+| `adventureId` | Adventure operations | Numeric (e.g., `124` for Paws for Action) |
+| `versionId` | Specifying adventure version | Numeric (e.g., `287` for the 2024 version) |
+| `requirementId` | Marking individual requirements | Numeric (e.g., `2632`) |
 
 ## Authentication
 

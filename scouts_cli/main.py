@@ -43,15 +43,15 @@ Examples:
 
   # Organization info (list all your orgs, then drill into one)
   scouts org list
-  scouts org profile --org F4C19DEB-...
-  scouts org dens --org F4C19DEB-...
-  scouts org activities --org F4C19DEB-...
+  scouts org profile --org {org-guid}
+  scouts org dens --org {org-guid}
+  scouts org activities --org {org-guid}
 
   # Roster: youth, adults, parents, search
-  scouts roster list --org F4C19DEB-...
-  scouts roster search --org F4C19DEB-... "James"
-  scouts roster adults --org F4C19DEB-...
-  scouts roster parents --org F4C19DEB-...
+  scouts roster list --org {org-guid}
+  scouts roster search --org {org-guid} "Alex"
+  scouts roster adults --org {org-guid}
+  scouts roster parents --org {org-guid}
 
   # Ranks, adventures, merit badges, awards
   scouts rank list
@@ -61,20 +61,20 @@ Examples:
   scouts award list
 
   # Scout-specific advancement detail (merit badges, ranks, leadership, activity)
-  scouts profile merit-badges 10312245
-  scouts profile ranks 10312245
-  scouts profile leadership 10312245
-  scouts profile activity-summary 10312245
+  scouts profile merit-badges {user-id}
+  scouts profile ranks {user-id}
+  scouts profile leadership {user-id}
+  scouts profile activity-summary {user-id}
 
   # Advancement status and bulk entry
-  scouts advancement status --org F4C19DEB-... --adventure 124 --members 140325643
-  scouts advancement bulk-entry --org F4C19DEB-... --adventure 124 --version-id 287 \\
-      --users 14048576 --requirements 2118 --date 2026-02-15 --approve
+  scouts advancement status --org {org-guid} --adventure 124 --members {member-id}
+  scouts advancement bulk-entry --org {org-guid} --adventure 124 --version-id 287 \\
+      --users {user-id} --requirements 2118 --date 2026-02-15 --approve
 
   # Messaging
-  scouts message recipients --org F4C19DEB-...
-  scouts message search --org F4C19DEB-... "John"
-  scouts message send --org F4C19DEB-... --bcc 136612736,135608909 \\
+  scouts message recipients --org {org-guid}
+  scouts message search --org {org-guid} "Alex"
+  scouts message send --org {org-guid} --bcc {member-id-1},{member-id-2} \\
       --subject "Meeting reminder" --body "Pack meeting Thursday at 6pm" --dry-run
 """
     )
