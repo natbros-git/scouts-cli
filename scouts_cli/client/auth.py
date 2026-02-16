@@ -109,7 +109,7 @@ class ScoutingAuth:
         """Authenticate by opening browser to advancements.scouting.org.
 
         Uses Playwright with persistent Chrome context to capture the JWT
-        from localStorage after the user completes Google OAuth sign-in.
+        from localStorage after the user completes sign-in.
 
         Args:
             verbose: Print progress to stderr

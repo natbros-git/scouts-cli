@@ -25,7 +25,7 @@ The Scouts CLI is a Python command-line tool that wraps the BSA Internet Advance
                    (Chrome channel)  └──────────────────────────┘
 ```
 
-The CLI authenticates via browser automation. When no valid JWT token exists, Playwright opens Chrome (using a persistent profile at `~/.scouts-cli/browser-profile/`) and navigates to `advancements.scouting.org`. If the persistent profile has valid Google OAuth cookies, the page auto-authenticates and the JWT is captured from `localStorage` silently (headless). If no session exists, a visible Chrome window opens for the user to complete Google sign-in. Tokens expire after ~8 hours; the CLI re-acquires them automatically using the stored session cookies.
+The CLI authenticates via browser automation. When no valid JWT token exists, Playwright opens Chrome (using a persistent profile at `~/.scouts-cli/browser-profile/`) and navigates to `advancements.scouting.org`. If the persistent profile has valid session cookies, the page auto-authenticates and the JWT is captured from `localStorage` silently (headless). If no session exists, a visible Chrome window opens for the user to complete sign-in. Tokens expire after ~8 hours; the CLI re-acquires them automatically using the stored session cookies.
 
 A manual fallback is available: `scouts auth login --token "eyJ..."` to paste a JWT directly.
 
@@ -203,7 +203,7 @@ Four independent caches reduce API calls and store persistent state:
 
 1. **Token cache** (`token.json`): Written on `auth login` or after browser-based token capture. Expires with the JWT (~8 hours). When expired, the CLI automatically re-acquires a token via Playwright browser automation using session cookies from the browser profile.
 
-2. **Browser profile** (`browser-profile/`): Playwright persistent context directory. Stores Chrome session cookies (Google OAuth) and localStorage data. Survives across CLI invocations. After the user completes Google sign-in once, subsequent token refreshes use these cookies automatically without human interaction.
+2. **Browser profile** (`browser-profile/`): Playwright persistent context directory. Stores Chrome session cookies and localStorage data. Survives across CLI invocations. After the user completes sign-in once, subsequent token refreshes use these cookies automatically without human interaction.
 
 3. **Context cache** (`context.json`): Aggregates data from 3 API calls (`get_person_profile`, `get_my_scouts`, `get_role_types`) into a single local file. Auto-populates on first use. Auto-refreshes when older than 7 days. Used by `org list`, `roster resolve`, and any command that needs the user's identity without an explicit API call.
 

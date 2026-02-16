@@ -8,19 +8,19 @@ Command-line interface for BSA Internet Advancement (Scoutbook Plus). Wraps the 
 ```bash
 ./bootstrap --human                        # Check prerequisites
 ./bootstrap --install                      # Install missing Python packages
-./scouts auth login                        # Opens Chrome for Google sign-in
+./scouts auth login                        # Opens Chrome for sign-in
 ```
 
 **Windows:**
 ```cmd
 python bootstrap --human                   # Check prerequisites
 python bootstrap --install                 # Install missing Python packages
-python scouts auth login                   # Opens Chrome for Google sign-in
+python scouts auth login                   # Opens Chrome for sign-in
 ```
 
 The `bootstrap` script checks that your system has everything the CLI needs: Python 3.10+, pip, Google Chrome, and the Python packages (`requests`, `playwright`). With `--install`, it automatically installs any missing Python packages. Chrome must be installed manually.
 
-On first run, a Chrome window opens to `advancements.scouting.org` for Google sign-in. After that, token refreshes happen automatically (no browser window). Tokens expire after ~8 hours; the CLI re-acquires them silently using stored session cookies.
+On first run, a Chrome window opens to `advancements.scouting.org` for authentication. After that, token refreshes happen automatically (no browser window). Tokens expire after ~8 hours; the CLI re-acquires them silently using stored session cookies.
 
 **Manual fallback** (if browser auth isn't available):
 ```bash
@@ -169,7 +169,7 @@ The CLI authenticates automatically using Playwright browser automation with a p
 **How it works:**
 1. If a valid JWT token exists in `~/.scouts-cli/token.json`, it is used directly (fast path).
 2. If no valid token exists, Playwright launches Chrome headlessly with a persistent profile at `~/.scouts-cli/browser-profile/`. If session cookies are warm, the token is captured silently in ~5 seconds.
-3. If headless fails (no session cookies), Chrome opens visibly for the user to complete Google sign-in. The token is captured automatically once login completes.
+3. If headless fails (no session cookies), Chrome opens visibly for the user to complete sign-in. The token is captured automatically once login completes.
 
 **Token lifecycle:** ~8 hours. After expiration, the CLI re-acquires a fresh token using stored session cookies — no human interaction needed.
 

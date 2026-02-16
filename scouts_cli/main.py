@@ -27,7 +27,7 @@ def create_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Authenticate (opens browser for Google sign-in)
+  # Authenticate (opens browser for sign-in)
   scouts auth login
   scouts auth login --token "eyJhbG..."    # manual fallback
 
@@ -94,7 +94,7 @@ Examples:
     login_parser = auth_sub.add_parser('login',
         help='Authenticate (opens browser, or use --token for manual)')
     login_parser.add_argument('--token', required=False, default=None,
-        help='JWT token (if omitted, opens browser for Google sign-in)')
+        help='JWT token (if omitted, opens browser for sign-in)')
 
     auth_sub.add_parser('status', help='Show current auth status')
     auth_sub.add_parser('logout', help='Remove cached token')

@@ -1,7 +1,7 @@
 """Browser-based authentication for Scouts CLI.
 
 Uses Playwright to automate JWT token retrieval from advancements.scouting.org.
-Maintains a persistent browser profile so Google OAuth session cookies survive
+Maintains a persistent browser profile so session cookies survive
 between runs -- after the first login, subsequent token refreshes are automatic.
 
 Requires: pip install playwright
@@ -84,7 +84,7 @@ def acquire_token_via_browser(verbose: bool = False) -> str:
 
     Two-phase strategy:
     1. Headless attempt with persistent context (fast, silent, works if cookies warm)
-    2. Headed fallback for user to complete Google OAuth login
+    2. Headed fallback for user to complete login
 
     Args:
         verbose: If True, print progress to stderr

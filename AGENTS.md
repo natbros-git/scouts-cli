@@ -16,7 +16,7 @@ Bootstrap checks: Python 3.10+, pip, Google Chrome, `requests`, `playwright`, an
 After bootstrap passes, authenticate:
 
 ```bash
-./scouts auth login            # Opens Chrome for Google sign-in (first time)
+./scouts auth login            # Opens Chrome for sign-in (first time)
 ./scouts auth status           # Verify: should return "status": "authenticated"
 ```
 
@@ -80,7 +80,7 @@ All commands output JSON by default. Add `--human` for human-readable tables. Ad
 Authentication is automatic. When any command needs a valid token and none exists (or the token has expired), the CLI acquires one via Playwright browser automation:
 
 1. **Headless attempt** (15s): Chrome launches silently with a persistent profile. If session cookies are warm, the token is captured with no browser window.
-2. **Headed fallback** (5min): If headless fails, a visible Chrome window opens for the user to complete Google sign-in.
+2. **Headed fallback** (5min): If headless fails, a visible Chrome window opens for the user to complete sign-in.
 
 After the first login, token refreshes happen automatically with no human interaction.
 
