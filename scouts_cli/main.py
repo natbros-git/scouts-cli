@@ -65,6 +65,8 @@ Examples:
   scouts profile ranks {user-id}
   scouts profile leadership {user-id}
   scouts profile activity-summary {user-id}
+  scouts profile rank-requirements {user-id} --rank-id {rank-id}
+  scouts profile mb-requirements {user-id} --badge-id {mb-id}
 
   # Advancement status and bulk entry
   scouts advancement status --org {org-guid} --adventure 124 --members {member-id}
@@ -185,6 +187,21 @@ Examples:
     scout_activity_parser = profile_sub.add_parser('activity-summary',
                                                     help='Show a scout\'s activity logs')
     scout_activity_parser.add_argument('user_id', type=int, help='Scout user ID')
+
+    scout_rank_reqs_parser = profile_sub.add_parser(
+        'rank-requirements',
+        help='Show a scout\'s per-requirement completion for a rank')
+    scout_rank_reqs_parser.add_argument('user_id', type=int, help='Scout user ID')
+    scout_rank_reqs_parser.add_argument('--rank-id', type=int, required=True,
+                                        help='Rank ID (1=Scout 2=Tenderfoot 3=2nd Class '
+                                             '4=1st Class 5=Star 6=Life 7=Eagle)')
+
+    scout_mb_reqs_parser = profile_sub.add_parser(
+        'mb-requirements',
+        help='Show a scout\'s per-requirement completion for a merit badge')
+    scout_mb_reqs_parser.add_argument('user_id', type=int, help='Scout user ID')
+    scout_mb_reqs_parser.add_argument('--badge-id', type=int, required=True,
+                                      help='Merit badge ID')
 
     # ── roster ─────────────────────────────────────────────────
     roster_parser = subparsers.add_parser('roster', help='Scout roster operations')
@@ -489,6 +506,12 @@ def main():
                 formatter.output_result(result)
             elif args.action == 'activity-summary':
                 result = cmds.get_scout_activity_summary(args.user_id)
+                formatter.output_result(result)
+            elif args.action == 'rank-requirements':
+                result = cmds.get_scout_rank_requirements(args.user_id, args.rank_id)
+                formatter.output_result(result)
+            elif args.action == 'mb-requirements':
+                result = cmds.get_scout_merit_badge_requirements(args.user_id, args.badge_id)
                 formatter.output_result(result)
             else:
                 parser.parse_args(['profile', '--help'])

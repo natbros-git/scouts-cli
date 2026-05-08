@@ -232,6 +232,73 @@ class ProfileCommands:
             'count': len(positions),
         }
 
+    def get_scout_rank_requirements(self, user_id: int, rank_id: int) -> dict:
+        """Get a specific scout's per-requirement completion for a rank.
+
+        Args:
+            user_id: Scout's user ID
+            rank_id: Rank ID (1=Scout, 2=Tenderfoot, 3=Second Class,
+                     4=First Class, 5=Star, 6=Life, 7=Eagle)
+
+        Returns:
+            Dict with rank name, percentCompleted, and 'requirements' list.
+        """
+        raw = self.client.get_youth_rank_requirements(user_id, rank_id)
+
+        requirements = []
+        for req in raw.get('requirements', []):
+            requirements.append({
+                'id': req.get('id'),
+                'number': req.get('requirementNumber') or req.get('listNumber'),
+                'name': req.get('name'),
+                'completed': req.get('completed'),
+                'dateCompleted': req.get('dateCompleted'),
+                'leaderApprovedDate': req.get('leaderApprovedDate'),
+                'percentCompleted': req.get('percentCompleted'),
+            })
+
+        return {
+            'rank': raw.get('name'),
+            'rankId': raw.get('id'),
+            'percentCompleted': raw.get('percentCompleted'),
+            'dateEarned': raw.get('dateEarned'),
+            'requirements': requirements,
+        }
+
+    def get_scout_merit_badge_requirements(self, user_id: int, mb_id: int) -> dict:
+        """Get a specific scout's per-requirement completion for a merit badge.
+
+        Args:
+            user_id: Scout's user ID
+            mb_id: Merit badge ID
+
+        Returns:
+            Dict with badge name, percentCompleted, and 'requirements' list.
+        """
+        raw = self.client.get_youth_merit_badge_requirements(user_id, mb_id)
+
+        requirements = []
+        for req in raw.get('requirements', []):
+            requirements.append({
+                'id': req.get('id'),
+                'number': req.get('number') or req.get('listNumber'),
+                'name': req.get('name'),
+                'completed': req.get('completed'),
+                'dateCompleted': req.get('dateCompleted'),
+                'counselorApprovedDate': req.get('counselorApprovedDate'),
+                'percentCompleted': req.get('percentCompleted'),
+            })
+
+        return {
+            'meritBadge': raw.get('name'),
+            'meritBadgeId': raw.get('id'),
+            'isEagleRequired': raw.get('eagleRequired'),
+            'percentCompleted': raw.get('percentCompleted'),
+            'dateStarted': raw.get('dateStarted'),
+            'dateCompleted': raw.get('dateCompleted'),
+            'requirements': requirements,
+        }
+
     def get_scout_activity_summary(self, user_id: int) -> dict:
         """Get a specific scout's activity summary (camping, hiking, service).
 
