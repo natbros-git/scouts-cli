@@ -468,6 +468,40 @@ class ScoutingClient:
             params={'summary': 'true'}
         )
 
+    def get_youth_rank_requirements(self, user_id: int, rank_id: int) -> dict:
+        """Get a youth's per-requirement completion for a specific rank.
+
+        Args:
+            user_id: Youth's user ID
+            rank_id: Rank ID (1=Scout, 2=Tenderfoot, 3=Second Class,
+                     4=First Class, 5=Star, 6=Life, 7=Eagle)
+
+        Returns:
+            Dict with rank metadata and 'requirements' list. Each requirement
+            includes completion status, dates, and leader approval info.
+        """
+        return self._make_request(
+            'GET',
+            f'/advancements/v2/youth/{user_id}/ranks/{rank_id}/requirements'
+        )
+
+    def get_youth_merit_badge_requirements(self, user_id: int, mb_id: int) -> dict:
+        """Get a youth's per-requirement completion for a specific merit badge.
+
+        Args:
+            user_id: Youth's user ID
+            mb_id: Merit badge ID
+
+        Returns:
+            Dict with merit badge metadata and 'requirements' list. Each
+            requirement includes completion status, dates, and counselor
+            approval info.
+        """
+        return self._make_request(
+            'GET',
+            f'/advancements/v2/youth/{user_id}/meritBadges/{mb_id}/requirements'
+        )
+
     # ── Messaging Endpoints ────────────────────────────────────────
 
     def get_recipients(self, org_guid: str) -> dict:
