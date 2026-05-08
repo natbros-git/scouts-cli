@@ -65,7 +65,7 @@ Examples:
   scouts profile ranks {user-id}
   scouts profile leadership {user-id}
   scouts profile activity-summary {user-id}
-  scouts profile rank-requirements {user-id} --rank-id 7
+  scouts profile rank-requirements {user-id} --rank-id {rank-id}
   scouts profile mb-requirements {user-id} --badge-id {mb-id}
 
   # Advancement status and bulk entry
