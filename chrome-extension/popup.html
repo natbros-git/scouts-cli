@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Troop 0501 Bulk Advancement</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 900px;
+      min-height: 500px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      color: #1a1a1a;
+      background: #f0f2f5;
+    }
+    .container {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .header {
+      background: #003f87;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header h1 {
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .header .badge {
+      background: rgba(255,255,255,0.2);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 160px 1fr;
+      min-height: 420px;
+    }
+    .col {
+      padding: 12px;
+      border-right: 1px solid #e8e8e8;
+    }
+    .col:last-child { border-right: none; }
+    .col-header {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #003f87;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #003f87;
+    }
+    .search-box {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-bottom: 6px;
+      background: #fafafa;
+    }
+    .scroll-list {
+      max-height: 360px;
+      overflow-y: auto;
+      border: 1px solid #e8e8e8;
+      border-radius: 4px;
+      padding: 2px 0;
+    }
+    .list-item {
+      display: flex;
+      align-items: center;
+      padding: 6px 8px;
+      border-radius: 3px;
+      margin: 1px 2px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .list-item:hover { background: #f5f8ff; }
+    .list-item.selected { background: #e3f2fd; }
+    .list-item input[type="checkbox"] {
+      margin-right: 8px;
+      width: 14px;
+      height: 14px;
+      accent-color: #003f87;
+    }
+    .scout-name { flex: 1; font-size: 12px; }
+    .scout-rank {
+      font-size: 10px;
+      color: #666;
+      background: #f0f0f0;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .rank-option {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 5px;
+      margin-bottom: 3px;
+      font-size: 12px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .rank-option:hover { background: #f5f8ff; border-color: #ccc; }
+    .rank-option.selected {
+      background: #003f87;
+      color: white;
+      border-color: #003f87;
+      font-weight: 600;
+    }
+    .req-item {
+      display: flex;
+      align-items: center;
+      padding: 5px 8px;
+      border-radius: 3px;
+      margin: 1px 2px;
+      cursor: pointer;
+    }
+    .req-item:hover { background: #f5f8ff; }
+    .req-item.selected { background: #e8f5e9; }
+    .req-item input[type="checkbox"] {
+      margin-right: 8px;
+      width: 14px;
+      height: 14px;
+      accent-color: #2e7d32;
+    }
+    .req-number {
+      font-weight: 700;
+      color: #003f87;
+      width: 28px;
+      font-size: 11px;
+    }
+    .req-name {
+      flex: 1;
+      font-size: 11px;
+      color: #333;
+    }
+    .req-status {
+      font-size: 11px;
+      width: 18px;
+      text-align: center;
+    }
+    .status-done { color: #2e7d32; font-weight: bold; }
+    .status-pending { color: #f57c00; }
+    .status-none { color: #ccc; }
+    .footer {
+      padding: 10px 20px;
+      background: #f8f9fa;
+      border-top: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-info {
+      font-size: 11px;
+      color: #666;
+    }
+    .footer-info strong { color: #003f87; }
+    .btn-apply {
+      background: #2e7d32;
+      color: white;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 5px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-apply:hover { background: #1b5e20; }
+    .btn-apply:disabled { background: #999; cursor: not-allowed; }
+    .select-all {
+      font-size: 10px;
+      color: #003f87;
+      cursor: pointer;
+      margin-bottom: 6px;
+      display: inline-block;
+    }
+    .select-all:hover { text-decoration: underline; }
+    .error {
+      background: #fff3f3;
+      border: 1px solid #ffcdd2;
+      color: #c62828;
+      padding: 8px 12px;
+      margin: 8px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      display: none;
+    }
+    .token-fallback {
+      margin: 8px 12px;
+      display: none;
+      font-size: 11px;
+    }
+    .token-fallback input {
+      width: 70%;
+      padding: 5px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-right: 6px;
+    }
+    .token-fallback button {
+      padding: 5px 10px;
+      background: #003f87;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .loading-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      color: #666;
+      z-index: 10;
+    }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="container" style="position:relative;">
+    <div class="header">
+      <h1>Troop 0501 — Bulk Advancement</h1>
+      <span class="badge">READ-ONLY</span>
+    </div>
+
+    <div id="error-box" class="error"></div>
+    <div id="token-fallback" class="token-fallback">
+      <p style="margin-bottom:4px;color:#666;">Paste token from DevTools (Application → localStorage → JWT starting with eyJ...):</p>
+      <input type="text" id="manual-token" placeholder="eyJhbG...">
+      <button id="btn-use-token">Use Token</button>
+    </div>
+
+    <div class="columns">
+      <!-- Column 1: Scouts -->
+      <div class="col">
+        <div class="col-header">① Select Scouts</div>
+        <input type="text" class="search-box" id="scout-search" placeholder="Search scouts...">
+        <span class="select-all" id="btn-select-all-scouts">Select All / None</span>
+        <div class="status-bar" id="scout-count" style="font-size:10px;color:#666;margin-bottom:4px;"></div>
+        <div class="scroll-list" id="scout-list"></div>
+      </div>
+
+      <!-- Column 2: Rank -->
+      <div class="col">
+        <div class="col-header">② Select Rank</div>
+        <div id="rank-list">
+          <div class="rank-option" data-rank="1|84">Scout</div>
+          <div class="rank-option" data-rank="2|83">Tenderfoot</div>
+          <div class="rank-option" data-rank="3|98">Second Class</div>
+          <div class="rank-option" data-rank="4|99">First Class</div>
+          <div class="rank-option" data-rank="5|40">Star Scout</div>
+          <div class="rank-option" data-rank="6|41">Life Scout</div>
+          <div class="rank-option" data-rank="7|108">Eagle Scout</div>
+        </div>
+      </div>
+
+      <!-- Column 3: Requirements -->
+      <div class="col">
+        <div class="col-header">③ Select Requirements</div>
+        <span class="select-all" id="btn-select-all-reqs">Select All / None</span>
+        <div class="status-bar" id="req-count" style="font-size:10px;color:#666;margin-bottom:4px;"></div>
+        <div class="scroll-list" id="req-list">
+          <div style="padding:20px;text-align:center;color:#999;font-size:11px;">Select a rank to load requirements</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-info" id="footer-info">
+        <strong>0 scouts</strong> · <strong>0 requirements</strong> · Date: <strong>today</strong>
+      </div>
+      <button class="btn-apply" id="btn-apply" disabled>✓ Preview Status</button>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay hidden">Loading...</div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
