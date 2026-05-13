@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bulk Advancement Tool — Demo</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      padding: 24px;
+      color: #1a1a1a;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .header {
+      background: #003f87;
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .header .badge {
+      background: rgba(255,255,255,0.2);
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr 200px 1fr;
+      min-height: 480px;
+    }
+    .col {
+      padding: 16px;
+      border-right: 1px solid #e8e8e8;
+    }
+    .col:last-child { border-right: none; }
+    .col-header {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #003f87;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #003f87;
+    }
+    .search-box {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+      margin-bottom: 10px;
+      background: #fafafa;
+    }
+    .list-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+    .list-item:hover { background: #f5f8ff; }
+    .list-item.selected { background: #e3f2fd; }
+    .list-item input[type="checkbox"] {
+      margin-right: 10px;
+      width: 16px;
+      height: 16px;
+      accent-color: #003f87;
+    }
+    .scout-name { flex: 1; font-size: 13px; }
+    .scout-rank {
+      font-size: 11px;
+      color: #666;
+      background: #f0f0f0;
+      padding: 2px 6px;
+      border-radius: 3px;
+    }
+    .rank-option {
+      display: block;
+      padding: 10px 12px;
+      border-radius: 6px;
+      margin-bottom: 4px;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .rank-option:hover { background: #f5f8ff; border-color: #ccc; }
+    .rank-option.selected {
+      background: #003f87;
+      color: white;
+      border-color: #003f87;
+      font-weight: 600;
+    }
+    .req-item {
+      display: flex;
+      align-items: center;
+      padding: 7px 10px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      cursor: pointer;
+    }
+    .req-item:hover { background: #f5f8ff; }
+    .req-item.selected { background: #e8f5e9; }
+    .req-item input[type="checkbox"] {
+      margin-right: 10px;
+      width: 16px;
+      height: 16px;
+      accent-color: #2e7d32;
+    }
+    .req-number {
+      font-weight: 700;
+      color: #003f87;
+      width: 32px;
+      font-size: 12px;
+    }
+    .req-name {
+      flex: 1;
+      font-size: 12px;
+      color: #333;
+    }
+    .footer {
+      padding: 16px 24px;
+      background: #f8f9fa;
+      border-top: 1px solid #e8e8e8;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-info {
+      font-size: 12px;
+      color: #666;
+    }
+    .footer-info strong { color: #003f87; }
+    .btn-apply {
+      background: #2e7d32;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-apply:hover { background: #1b5e20; }
+    .select-all {
+      font-size: 11px;
+      color: #003f87;
+      cursor: pointer;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+    .select-all:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Troop 0501 — Bulk Advancement</h1>
+      <span class="badge">Chrome Extension</span>
+    </div>
+
+    <div class="columns">
+      <!-- Column 1: Scout Selection -->
+      <div class="col">
+        <div class="col-header">① Select Scouts</div>
+        <input type="text" class="search-box" placeholder="Search scouts..." value="">
+        <span class="select-all" onclick="toggleAllScouts()">Select All / None</span>
+        <div id="scout-list">
+          <label class="list-item selected"><input type="checkbox" checked><span class="scout-name">John Doe</span><span class="scout-rank">First Class</span></label>
+          <label class="list-item selected"><input type="checkbox" checked><span class="scout-name">Jane Smith</span><span class="scout-rank">Scout</span></label>
+          <label class="list-item selected"><input type="checkbox" checked><span class="scout-name">Alex Johnson</span><span class="scout-rank">Tenderfoot</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Marcus Williams</span><span class="scout-rank">Second Class</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Sarah Chen</span><span class="scout-rank">First Class</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">David Martinez</span><span class="scout-rank">Tenderfoot</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Emily Brown</span><span class="scout-rank">Scout</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Ryan Patel</span><span class="scout-rank">Second Class</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Olivia Garcia</span><span class="scout-rank">Tenderfoot</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Ethan Kim</span><span class="scout-rank">Scout</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Sophia Davis</span><span class="scout-rank">First Class</span></label>
+          <label class="list-item"><input type="checkbox"><span class="scout-name">Noah Wilson</span><span class="scout-rank">Tenderfoot</span></label>
+        </div>
+      </div>
+
+      <!-- Column 2: Rank Selection -->
+      <div class="col">
+        <div class="col-header">② Select Rank</div>
+        <div class="rank-option">Scout</div>
+        <div class="rank-option">Tenderfoot</div>
+        <div class="rank-option selected">Second Class</div>
+        <div class="rank-option">First Class</div>
+        <div class="rank-option">Star Scout</div>
+        <div class="rank-option">Life Scout</div>
+        <div class="rank-option">Eagle Scout</div>
+      </div>
+
+      <!-- Column 3: Requirements -->
+      <div class="col">
+        <div class="col-header">③ Select Requirements</div>
+        <span class="select-all" onclick="toggleAllReqs()">Select All / None</span>
+        <div id="req-list" style="max-height: 360px; overflow-y: auto; border: 1px solid #e8e8e8; border-radius: 4px; padding: 4px 0;">
+          <label class="req-item selected"><input type="checkbox" checked><span class="req-number">1a</span><span class="req-name">Participate in 5 troop/patrol activities (3 outdoor, 2 overnight)</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">1b</span><span class="req-name">Explain principles of Leave No Trace, tell how you practiced them</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">1c</span><span class="req-name">Select a patrol site location, explain factors for choosing</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">2a</span><span class="req-name">Explain when appropriate to use a fire and when not</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">2b</span><span class="req-name">Prepare tinder, kindling, and fuel wood for a cooking fire</span></label>
+          <label class="req-item selected"><input type="checkbox" checked><span class="req-number">2c</span><span class="req-name">Build and light a fire, let burn 2 min, safely extinguish</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">2d</span><span class="req-name">Explain stove types, set up and light a lightweight/propane stove</span></label>
+          <label class="req-item selected"><input type="checkbox" checked><span class="req-number">2e</span><span class="req-name">Plan and cook one hot breakfast or lunch on a campout</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">2f</span><span class="req-name">Demonstrate tying the sheet bend knot</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">2g</span><span class="req-name">Demonstrate tying the bowline knot</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">3a</span><span class="req-name">Demonstrate how a compass works, orient a map, identify 5 symbols</span></label>
+          <label class="req-item selected"><input type="checkbox" checked><span class="req-number">3b</span><span class="req-name">Using compass and map, take a 5-mile hike (or 10 mi by bike)</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">3c</span><span class="req-name">Describe hazards on your hike and how to prevent them</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">3d</span><span class="req-name">Find directions day and night without compass or device</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">4</span><span class="req-name">Identify or show evidence of 10 kinds of wild animals</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">5a</span><span class="req-name">Tell precautions for a safe swim</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">5b</span><span class="req-name">Pass BSA beginner swim test (jump, swim 25 ft, return)</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">5c</span><span class="req-name">Demonstrate water rescue: reaching, throwing lines/objects</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">5d</span><span class="req-name">Explain why swimming rescues should be avoided when possible</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">6a</span><span class="req-name">First aid: eye, animal bite, puncture, burns, heat, shock</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">6b</span><span class="req-name">Hurry cases: stopped breathing, stroke, bleeding, poisoning</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">6c</span><span class="req-name">Tell how to prevent injuries on a campout or hike</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">6d</span><span class="req-name">Explain what to do for accidents requiring emergency response</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">6e</span><span class="req-name">Tell how to respond at a vehicular accident scene</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">7a</span><span class="req-name">Be physically active 30 min/day, 5 days/week for 4 weeks</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">7b</span><span class="req-name">Share challenges/successes, set goal for continued activity</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">7c</span><span class="req-name">Participate in program on dangers of drugs, alcohol, tobacco</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">8a</span><span class="req-name">Participate in a flag ceremony</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">8b</span><span class="req-name">Explain respect due the flag of the United States</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">8c</span><span class="req-name">Develop and follow a plan to earn money for a specific item</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">8d</span><span class="req-name">Compare cost at 3 locations, decide how to use earnings</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">8e</span><span class="req-name">Participate in 2 hours of service, explain relation to Scout Oath</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">9a</span><span class="req-name">Explain the three R's of personal safety and protection</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">9b</span><span class="req-name">Describe bullying and appropriate response</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">10</span><span class="req-name">Demonstrate Scout spirit, duty to God, four points of Scout Law</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">11</span><span class="req-name">Scoutmaster conference</span></label>
+          <label class="req-item"><input type="checkbox"><span class="req-number">12</span><span class="req-name">Board of review</span></label>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-info">
+        <strong>3 scouts</strong> selected &nbsp;·&nbsp; <strong>4 requirements</strong> selected &nbsp;·&nbsp; Completion date: <strong>May 13, 2026</strong>
+      </div>
+      <button class="btn-apply">✓ Apply Advancement</button>
+    </div>
+  </div>
+
+  <script>
+    // Interactive demo behavior
+    document.querySelectorAll('.rank-option').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.rank-option').forEach(r => r.classList.remove('selected'));
+        el.classList.add('selected');
+      });
+    });
+    document.querySelectorAll('.list-item input, .req-item input').forEach(cb => {
+      cb.addEventListener('change', updateFooter);
+    });
+    function updateFooter() {
+      const scouts = document.querySelectorAll('.list-item input:checked').length;
+      const reqs = document.querySelectorAll('.req-item input:checked').length;
+      document.querySelector('.footer-info').innerHTML =
+        `<strong>${scouts} scout${scouts !== 1 ? 's' : ''}</strong> selected &nbsp;·&nbsp; <strong>${reqs} requirement${reqs !== 1 ? 's' : ''}</strong> selected &nbsp;·&nbsp; Completion date: <strong>today</strong>`;
+    }
+    function toggleAllScouts() {
+      const cbs = document.querySelectorAll('.list-item input');
+      const allChecked = [...cbs].every(c => c.checked);
+      cbs.forEach(c => { c.checked = !allChecked; c.closest('.list-item').classList.toggle('selected', !allChecked); });
+      updateFooter();
+    }
+    function toggleAllReqs() {
+      const cbs = document.querySelectorAll('.req-item input');
+      const allChecked = [...cbs].every(c => c.checked);
+      cbs.forEach(c => { c.checked = !allChecked; c.closest('.req-item').classList.toggle('selected', !allChecked); });
+      updateFooter();
+    }
+  </script>
+</body>
+</html>
