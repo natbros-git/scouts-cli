@@ -178,7 +178,7 @@ function updateFooter() {
   const s = selectedScoutIds.size;
   const r = selectedReqIds.size;
   document.getElementById("footer-info").innerHTML =
-    `<strong>${s} scout${s !== 1 ? 's' : ''}</strong> · <strong>${r} requirement${r !== 1 ? 's' : ''}</strong> · Date: <strong>today</strong>`;
+    `<strong>${s} scout${s !== 1 ? 's' : ''}</strong> · <strong>${r} requirement${r !== 1 ? 's' : ''}</strong>`;
   document.getElementById("btn-apply").disabled = (s === 0 || r === 0);
 }
 
@@ -248,6 +248,10 @@ function renderRequirements() {
 // ── Event Wiring ──────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Set default date to today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById("completion-date").value = today;
+
   // Manual token fallback
   document.getElementById("btn-use-token").addEventListener("click", async () => {
     const t = document.getElementById("manual-token").value.trim();
@@ -353,7 +357,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("btn-apply").addEventListener("click", () => {
     const scouts = roster.filter(s => selectedScoutIds.has(s.memberId));
     const reqs = requirements.filter(r => selectedReqIds.has(r.id));
-    let msg = `PREVIEW (Read-Only)\n\nScouts (${scouts.length}):\n`;
+    const completionDate = document.getElementById("completion-date").value;
+    let msg = `PREVIEW (Read-Only)\n\nCompletion Date: ${completionDate}\n\nScouts (${scouts.length}):\n`;
     scouts.forEach(s => { msg += `  • ${s.fullName}\n`; });
     msg += `\nRequirements (${reqs.length}):\n`;
     reqs.forEach(r => { msg += `  • [${r.requirementNumber}] ${r.short || r.name.substring(0,40)}\n`; });
